@@ -1,4 +1,5 @@
 # C++ regex</br>
+
 regular expression defines a pattern to match. also for replace.</br>
 target sequence (subject)</br>
 regex: the pattern</br>
@@ -9,7 +10,8 @@ regex is extremely powerful in searching and replacing a string.</br>
 only available since c++11.</br>
 </br>
 c++ uses ECMAScript grammar:</br>
-</br>
+special character: []().^$*?+|\
+some flavor: {}
 range []:</br>
 [a-z] match one single lowercase letter</br>
 [0-9] match one single digit</br>
@@ -60,6 +62,7 @@ Needed for: ^ $ \ . * + ? ( ) [ ] { } |</br>
 [class]	character class	the target character is part of the class (see character classes below)</br>
 [^class]	negated character class	the target character is not part of the class (see character classes below)</br>
 </br>
+
 ### Quantifiers</br>
 Quantifiers follow a character or a special pattern character. They can modify the amount of times that character is repeated in the match:</br>
 characters	times	effects</br>
@@ -75,6 +78,7 @@ Matching "(a+).*" against "aardvark" succeeds and yields aa as the first submatc
 While matching "(a+?).*" against "aardvark" also succeeds, but yields a as the first submatch.</br>
 ? can be used to turn off the greedy match.</br>
 </br>
+
 ### Groups</br>
 Groups allow to apply quantifiers to a sequence of characters (instead of a single character). There are two kinds of groups:</br>
 characters	description	effects</br>
@@ -84,6 +88,7 @@ When a group creates a backreference, the characters that represent the subpatte
 </br>
 These submatches can be used in the regular expression itself to specify that the entire subpattern should appear again somewhere else (see \int in the special characters list). They can also be used in the replacement string or retrieved in the match_results object filled by some regex operations.</br>
 </br>
+
 ### Assertions</br>
 Assertions are conditions that do not consume characters in the target sequence: they do not describe a character, but a condition that must be fulfilled before or after a character.</br>
 characters	description	condition for match</br>
@@ -96,12 +101,14 @@ Note: The beginning and the end of the target sequence are considered here as no
 (?=subpattern)	Positive lookahead	The characters following the assertion must match subpattern, but no characters are consumed.</br>
 (?!subpattern)	Negative lookahead	The characters following the assertion must not match subpattern, but no characters are consumed.</br>
 </br>
+
 ### Alternatives</br>
 A pattern can include different alternatives:</br>
 character	description	effects</br>
 |	Separator	Separates two alternative patterns or subpatterns.</br>
 A regular expression can contain multiple alternative patterns simply by separating them with the separator operator (|): The regular expression will match if any of the alternatives match, and as soon as one does.</br>
 </br>
+
 ### Character classes</br>
 A character class defines a category of characters. It is introduced by enclosing its descriptors in square brackets ([ and ]).</br>
 The regex object attempts to match the entire character class against a single character in the target sequence (unless a quantifier specifies otherwise).</br>
@@ -148,6 +155,7 @@ Character classes support depend heavily on the regex traits used by the regex o
 </br>
 Subpatterns (in groups or assertions) can also use the separator operator to separate different alternatives.</br>
 </br>
+
 ### example 1: strip cpp file comments</br>
 //... using \/\/.*$ matches the comment till end</br>
 ```</br>
@@ -254,17 +262,67 @@ to avold a lot of slashes, we can use c++11 raw string literals</br>
 regex(R"((\bmy\b|\byour\b) regex)");</br>
 </br>
 </br>
-</br>
-</br>
-</br>
-</br>
-</br>
-</br>
-</br>
-</br>
-</br>
-</br>
-</br>
-</br>
-</br>
-</br>
+More notes:
+
+how regex engine works internally
+The Regex-Directed Engine Always Returns the Leftmost Match
+This is a very important point to understand: a regex-directed engine will always return the leftmost match, 
+even if a "better" match could be found later. When applying a regex to a string, the engine will start at the first character of the string. It will try all possible permutations of the regular expression at the first character. Only if all possibilities have been tried and found to fail, will the engine continue with the second character in the text. Again, it will try all possible permutations of the regex, in exactly the same order. The result is that the regex-directed engine will return the leftmost match.
+
+When applying cat to He captured a catfish for his cat., the engine will try to match the first token in the regex c to the first character in the match H. This fails. There are no other possible permutations of this regex, because it merely consists of a sequence of literal characters. So the regex engine tries to match the c with the e. This fails too, as does matching the c with the space. Arriving at the 4th character in the match, c matches c. The engine will then try to match the second token a to the 5th character, a. This succeeds too. But then, t fails to match p. At that point, the engine knows the regex cannot be matched starting at the 4th character in the match. So it will continue with the 5th: a. Again, c fails to match here and the engine carries on. At the 15th character in the match, c again matches c. The engine then proceeds to attempt to match the remainder of the regex at character 15 and finds that a matches a and t matches t.
+
+The entire regular expression could be matched starting at character 15. The engine is "eager" to report a match. It will therefore report the first three letters of catfish as a valid match. The engine never proceeds beyond this point to see if there are any "better" matches. The first match is considered good enough.
+
+In this first example of the engine's internals, our regex engine simply appears to work like a regular text search routine. A text-directed engine would have returned the same result too. However, it is important that you can follow the steps the engine takes in your mind. In following examples, the way the engine works will have a profound impact on the matches it will find. Some of the results may be surprising. But they are always logical and predetermined, once you know how the engine works.
+
+negated character class: [^u] it also matches \r\n (unlike .)
+inside a character class, the special character allowed:
+[]^\
+\s matches space, tab, \r, \n, \s=[ \t\r\n]
+
+inside:
+As I already said: the order of the characters inside a character class does not matter. gr[ae]y will match grey in Is his hair grey or gray?, because that is the leftmost match. We already saw how the engine applies a regex consisting only of literal characters. Below, I will explain how it applies a regex that has more than one permutation. That is: gr[ae]y can match both gray and grey.
+
+Nothing noteworthy happens for the first twelve characters in the string. The engine will fail to match g at every step, and continue with the next character in the string. When the engine arrives at the 13th character, g is matched. The engine will then try to match the remainder of the regex with the text. The next token in the regex is the literal r, which matches the next character in the text. So the third token, [ae] is attempted at the next character in the text (e). The character class gives the engine two options: match a or match e. It will first attempt to match a, and fail.
+
+But because we are using a regex-directed engine, it must continue trying to match all the other permutations of the regex pattern before deciding that the regex cannot be matched with the text starting at character 13. So it will continue with the other option, and find that e matches e. The last regex token is y, which can be matched with the following character as well. The engine has found a complete match with the text starting at character 13. It will return grey as the match result, and look no further. Again, the leftmost match was returned, even though we put the a first in the character class, and gray could have been matched in the string. But the engine simply did not get that far, because another equally valid match was found to the left of it.
+
+.=[^\r\n]
+activating multiline mode will make . match \n.
+
+anchors:
+integer input:
+^\s*\d+\s*$: leading and tailing spaces are allowed.
+13
+  25 
+749
+486
+4
+\d* will make zero length match a success.
+
+\b: word boundary, match not a word char.
+a word character [0-9a-zA-Z_] or \w.
+\B: negate \b.
+
+If you want to search for the literal text cat or dog, separate both options with a vertical bar or pipe symbol: cat|dog. If you want more options, simply expand the list: cat|dog|mouse|fish .
+
+The alternation operator has the lowest precedence of all regex operators. That is, it tells the regex engine to match either everything to the left of the vertical bar, or everything to the right of the vertical bar. If you want to limit the reach of the alternation, you will need to use round brackets for grouping. If we want to improve the first example to match whole words only, we would need to use \b(cat|dog)\b. This tells the regex engine to find a word boundary, then either "cat" or "dog", and then another word boundary. If we had omitted the round brackets, the regex engine would have searched for "a word boundary followed by cat", or, "dog followed by a word boundary.
+
+? makes eh preceding token optional
+colou?r: will match color or colour.
+? 0 or 1 matches.
+?? turn off greedy (lazy)
+
+With the question mark, I have introduced the first metacharacter that is greedy. The question mark gives the regex engine two choices: try to match the part the question mark applies to, or do not try to match it. The engine will always try to match that part. Only if this causes the entire regular expression to fail, will the engine try ignoring the part the question mark applies to.
+
+The effect is that if you apply the regex Feb 23(rd)? to the string Today is Feb 23rd, 2003, the match will always be Feb 23rd and not Feb 23. You can make the question mark lazy (i.e. turn off the greediness) by putting a second question mark after the first.
+
+
+
+
+
+
+
+
+
+
