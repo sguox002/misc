@@ -317,6 +317,74 @@ With the question mark, I have introduced the first metacharacter that is greedy
 
 The effect is that if you apply the regex Feb 23(rd)? to the string Today is Feb 23rd, 2003, the match will always be Feb 23rd and not Feb 23. You can make the question mark lazy (i.e. turn off the greediness) by putting a second question mark after the first.
 
+() group and back reference
+[] character class
+{} repetition
+
+Set(Value)?: match Set or SetValue (? optional match), and $1=Value.
+if you do not want backreference, use ?:
+Set(?:Value)?: the first ? cannot be optional since it is after an open ).
+
+The backreference can be used in the regex, for example:
+<([A-Z][A-Z0-9]*)\b[^>]*>.*?</\1>
+[A-Z][A-Z0-9]* string pattern, \1 represent the pattern.
+the matched pattern shall be the same for example <EM>abc</EM>, <B>abc</B>
+([a-c])x\1x\1 will match axaxa, bxbxb, cxcxc, but will not match axbxc
+so the backreference stores the matched results.
+
+mode modifier
+/i ignore case
+/s: sngle line mode
+/m: multiline mode
+/x: free spacing mode. white space between regex tokens is ignored.
+
+positive and negative lookahead:
+a(?=patt): positive lookahead. a followed by a pattern.
+a(?!patt): negative lookahead. a not followed by a pattern
+any valid regex can be used in lookahead.
+the () itself will not create backreference.
+It looks around to check the success or failure. but does not consume characters.
+
+positive and negative lookbehind:
+(?<=patt)a: positive lookbehind, a preceding is patt. 
+(?<!patt)a: negative lookbehind, a preceding is not patt.
+
+example:
+search by multiline record:
+
+<<-example1 
+keyword1, abc keyw1,cde
+->>
+<<-example2 
+keyw1,cde,keyw2 
+this is a test->>
+
+<<-example2 
+keyw2,cde,keyw1 
+this is a test->>
+search the record with keyw1 and keyw2 inside
+
+turn on multiline mode.
+<<-.*->> .* will match ->> greedily so it will not match a single record
+<<-.*?->> .*? will prevent greedy match .* (backtracking) (multiline mode)
+<<-(.|\r\n)*?->> or <<-(.|[\r\n])*?->> will match single record in single line mode (the first needs \r\n together, the second just need \r or \n)
+<<-[.|\r\n)*?->> will not match any record(it defines .* or \r* or \n*)
+using only \r or \n will not match multiline since . will not match \r or \n.
+
+| used in [] is equivalent to not using it, since in [] the default is or.
+[.|\r\n]* is same as [.\r\n]* which is .* \r* or \n*.
+
+if we want to add several keywords for example keyw2 keyw1 and order does not matter. Also need to avoid greedy approach
+
+this shall be an AND logical.
+<<-(.|[\r\n])*?(keyw1|keyw2)(.|[\r\n])*?(keyw1|keyw2)(.|[\r\n])*?->>
+<<- match <<-
+(.|[\r\n])*? matches any char, but will not it greedy eat key1 or keyw2
+but this will not prevent it eat ->> so it will include multiple records.
+to avoid greedy eat ->> we need and a not condition 
+<<-(.|[\r\n])*?(keyw1|keyw2)(.|[\r\n])*?(keyw1|keyw2)(.|[\r\n])*?->>
+must not subpattern using ?!, ie, we are not allowed anything to match ->>
+<<-((?!->>).|[\r\n])*?(keyw1|keyw2)((?!->>).|[\r\n])*?(keyw1|keyw2)(.|[\r\n])*?->>
 
 
 
