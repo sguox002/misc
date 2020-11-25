@@ -158,16 +158,16 @@ Subpatterns (in groups or assertions) can also use the separator operator to sep
 
 ### example 1: strip cpp file comments</br>
 //... using \/\/.*$ matches the comment till end</br>
-```</br>
+```
 abcd//this is comment...</br>
-```</br>
+```
 </br>
 /*anything*/ use \/\*.*\*\/ to match the substring in a line</br>
-```</br>
+```
 code /*comments!!*/ codes</br>
-```</br>
+```
 match multiple line comments:</br>
-```</br>
+```
 code /* comments  </br>
 new code ...</br>
 abc*/</br>
@@ -175,7 +175,7 @@ abc*/</br>
 code();</br>
 //hello</br>
 /*start a new function*/</br>
-```</br>
+```
 The example shall have two matches instead of one.</br>
 \/\*(.|[\r\n])*\*\/ this will greedily match from the first /* to the last */ which is incorrect.</br>
 </br>
@@ -188,13 +188,13 @@ use: \/\/.*$|\/\*(.|[\r\n])*?\*\/</br>
 </br>
 disable matching in a string:</br>
 for example:</br>
-```</br>
+```
 str="this is a string with /*comment*/ and //others";</br>
-```</br>
+```
 </br>
 example 2:</br>
 given the raw:</br>
-```</br>
+```
 #	Title	Solution	Acceptance	Difficulty	Frequency  </br>
 1161	</br>
 Maximum Level Sum of a Binary Tree    		71.0%	Medium	</br>
@@ -212,13 +212,13 @@ Swap For Longest Repeated Character Substring    		47.7%	Medium	</br>
 Number of Dice Rolls With Target Sum    		47.8%	Medium	</br>
 1154	</br>
 Day of the Year    		49.3%	Easy	</br>
-```</br>
+```
 we want to put the whole record into one single line.</br>
 search for number followed by \r\n and strip the \r\n</br>
 (^\d+\s+)\r\n</br>
 and replaced with $1:</br>
 The output would be:</br>
-```</br>
+```
 #	Title	Solution	Acceptance	Difficulty	Frequency  </br>
 1161	Maximum Level Sum of a Binary Tree    		71.0%	Medium	</br>
 1160	Find Words That Can Be Formed by Characters    		67.3%	Easy	</br>
@@ -228,7 +228,7 @@ The output would be:</br>
 1156	Swap For Longest Repeated Character Substring    		47.7%	Medium	</br>
 1155	Number of Dice Rolls With Target Sum    		47.8%	Medium	</br>
 1154	Day of the Year    		49.3%	Easy	</br>
-```</br>
+```
 </br>
 ### using regex in C++</br>
 </br>
@@ -249,10 +249,10 @@ regex_search(text,regex_obj): using the regex search pattern to do search in the
 regex_search return true or false.</br>
 it has several forms of overloading functions:</br>
 You can get match_results object:</br>
-```</br>
+```
 match_result res=smatch();</br>
 regex_search(text,res,regex_obj)</br>
-```</br>
+```
 reg_match: check if the whole string matches the pattern. often used for validation of input.</br>
 </br>
 using slash \:</br>
@@ -351,7 +351,7 @@ positive and negative lookbehind:
 
 example:
 search by multiline record:
-
+```
 <<-example1 
 keyword1, abc keyw1,cde
 ->>
@@ -363,6 +363,7 @@ this is a test->>
 keyw2,cde,keyw1 
 this is a test->>
 search the record with keyw1 and keyw2 inside
+```
 
 turn on multiline mode.
 <<-.*->> .* will match ->> greedily so it will not match a single record
